@@ -1,13 +1,13 @@
 import pygame
 
-
 class Cell:
     def __init__(self, x: int, y: int):
         self.x, self.y = x, y
+        cells = [(i, j) for i in range(50) for j in range(35)]# поле 1000*700 поделено на клетки по 20px
 
     def is_clicked(self, pos: tuple):
         x, y = pos
-        pass  # to do click react!
+        print(x // 20, y // 20)
 
 
 class Building(Cell):
@@ -15,7 +15,7 @@ class Building(Cell):
         super().__init__(x, y)
         self.income = 100
 
-    def upgrade(self):
+    def build(self):
         pass    # создать объект классa Building на координатах x, y
 
 
@@ -33,11 +33,16 @@ class Field(Cell):
         pass
 
 
-class Board:
-    def __init__(self, width: int, height: int):
+class Board():
+    def __init__(self, width: int, height: int, screen):
         self.width = width
         self.height = height
         self.board = [[Field(x, y) for x in range(width)] for y in range(height)]
+        self.screen = screen
+        boardfield = pygame.image.load('data_images/fon-trava.jpg') # фон
+        screen.blit(boardfield, (0, 0))
+        pygame.display.flip()
+
 
 
 if __name__ == '__main__':
@@ -45,12 +50,15 @@ if __name__ == '__main__':
     running = True
     pygame.init()
     pygame.display.set_caption('City Builder')
-    size = width, height = 600, 500
+    size = width, height = 1000, 700
     screen = pygame.display.set_mode(size)
     pygame.display.flip()
-    board = Board(5, 5)
+    board = Board(5, 5, screen)
+    cell = Cell(0, 0)
     while running:
         for event in pygame.event.get():
             if event.type == pygame.QUIT:
                 running = False
+            if event.type == pygame.MOUSEBUTTONDOWN:
+                cell.is_clicked(event.pos)
     pygame.quit()
