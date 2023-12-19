@@ -1,5 +1,36 @@
 import pygame
 
+def load_image(name, colorkey=None):
+    fullname = os.path.join('data', name)
+    if not os.path.isfile(fullname):
+        print(f"Файл с изображением '{fullname}' не найден")
+        sys.exit()
+    image = pygame.image.load(fullname)
+    return image
+
+
+class Button(pygame.sprite.Sprite):
+    image = load_image("button.png")
+
+    def __init__(self, group, screen, x: int, y: int, width: int, height: int):
+        super().__init__(group)
+        self.screen = screen
+        self.x, self.y, self.width, self.height = x, y, width, height
+
+        self.image = Button.image
+        self.image = pygame.transform.scale(self.image, (width, height))
+        self.rect = self.image.get_rect()
+        self.rect = self.rect.move(self.x, self.y)
+
+    def update(self):
+        x1, y1 = pygame.mouse.get_pos()
+        if self.x <= x1 <= self.x + self.width and self.y <= y1 <= self.y + self.height:
+            print("click")
+
+    def set_image(self, image):
+        self.image = load_image(image)
+        self.image = pygame.transform.scale(self.image, (self.width, self.height))
+
 
 class Cell:
     def __init__(self, x: int, y: int):
@@ -47,7 +78,6 @@ if __name__ == '__main__':
     pygame.display.set_caption('City Builder')
     size = width, height = 600, 500
     screen = pygame.display.set_mode(size)
-    pygame.display.flip()
     board = Board(5, 5)
     while running:
         for event in pygame.event.get():
