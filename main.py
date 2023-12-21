@@ -1,13 +1,9 @@
 import pygame
-
+import sys
+import os
 class Cell:
     def __init__(self, x: int, y: int):
         self.x, self.y = x, y
-        cells = [(i, j) for i in range(50) for j in range(35)]# поле 1000*700 поделено на клетки по 20px
-
-    def is_clicked(self, pos: tuple):
-        x, y = pos
-        print(x // 20, y // 20)
 
 
 class Building(Cell):
@@ -41,7 +37,18 @@ class Board():
         self.screen = screen
         boardfield = pygame.image.load('data_images/fon-trava.jpg') # фон
         screen.blit(boardfield, (0, 0))
+        self.render()
         pygame.display.flip()
+
+    def is_clicked(self, pos: tuple):
+        x, y = pos
+        print(x // 50, y // 50)
+
+    def render(self):
+        for i in range(self.height):
+            for j in range(self.width):
+                pygame.draw.rect(screen, 'white', (50 * j, 50 * i,
+                                                   50, 50), 1)
 
 
 
@@ -53,12 +60,12 @@ if __name__ == '__main__':
     size = width, height = 1000, 700
     screen = pygame.display.set_mode(size)
     pygame.display.flip()
-    board = Board(5, 5, screen)
-    cell = Cell(0, 0)
+    board = Board(20, 14, screen)
+    field = Field(0, 0)
     while running:
         for event in pygame.event.get():
             if event.type == pygame.QUIT:
                 running = False
             if event.type == pygame.MOUSEBUTTONDOWN:
-                cell.is_clicked(event.pos)
+                board.is_clicked(event.pos)
     pygame.quit()
