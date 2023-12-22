@@ -1,7 +1,10 @@
 import pygame
+import os
+import sys
+
 
 def load_image(name, colorkey=None):
-    fullname = os.path.join('data', name)
+    fullname = os.path.join('data_images', name)
     if not os.path.isfile(fullname):
         print(f"Файл с изображением '{fullname}' не найден")
         sys.exit()
@@ -78,7 +81,6 @@ if __name__ == '__main__':
     pygame.display.set_caption('City Builder')
     size = width, height = 600, 500
     screen = pygame.display.set_mode(size)
-    board = Board(5, 5)
     while running:
         for event in pygame.event.get():
             if event.type == pygame.QUIT:
