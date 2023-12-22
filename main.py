@@ -89,7 +89,6 @@ class Board:
                                                    50, 50), 1)
 
 
-
 if __name__ == '__main__':
     balance = 100
     running = True
