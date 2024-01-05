@@ -26,13 +26,19 @@ class Button(pygame.sprite.Sprite):
         self.rect = self.rect.move(self.x, self.y)
 
     def update(self):
-        x1, y1 = pygame.mouse.get_pos()
-        if self.x <= x1 <= self.x + self.width and self.y <= y1 <= self.y + self.height:
-            print("click")
+        try:
+            x1, y1 = pygame.mouse.get_pos()
+            if self.x <= x1 <= self.x + self.width and self.y <= y1 <= self.y + self.height:
+                self.funk()
+        except AttributeError:
+            print("У кнопки нет функции.")
 
     def set_image(self, image):
         self.image = load_image(image)
         self.image = pygame.transform.scale(self.image, (self.width, self.height))
+
+    def connect(self, funk):
+        self.funk = funk
 
 
 class Cell:
@@ -98,7 +104,6 @@ if __name__ == '__main__':
     screen = pygame.display.set_mode(size)
     pygame.display.flip()
     board = Board(20, 14, screen)
-    field = Field(0, 0)
     while running:
         for event in pygame.event.get():
             if event.type == pygame.QUIT:
