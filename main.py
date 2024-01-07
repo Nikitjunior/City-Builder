@@ -25,15 +25,14 @@ class Road(pygame.sprite.Sprite):
         self.rect = self.rect.move(self.x * CELL_SIZE, self.y * CELL_SIZE)
         group.update()
 
-    def update(self):
-        self.rect.move(self.x * CELL_SIZE, self.y * CELL_SIZE)
+    def update_texture(self):
 
         neighbours = [(self.x, y) for y in range(self.y - 1, self.y + 2) if
                       (y != self.y and 0 <= y <= board.height - 1 and isinstance(board.board[y][self.x], Road))]
         neighbours += [(x, self.y) for x in range(self.x - 1, self.x + 2) if
                        (x != self.x and 0 <= x <= board.width - 1 and isinstance(board.board[self.y][x], Road))]
 
-        if 0 == len(neighbours) or len(neighbours) >= 3:
+        if 0 == len(neighbours) or len(neighbours) > 3:
             self.image = Road.image.subsurface((250, 0, 250, 250))
         elif len(neighbours) == 1:
             x, y = neighbours[0]
@@ -66,9 +65,30 @@ class Road(pygame.sprite.Sprite):
                     (x2 < self.x and self.y == y2) and (y1 > self.y and x1 == self.x)):
                 self.image = Road.image.subsurface((500, 0, 250, 250))
                 self.image = pygame.transform.rotate(self.image, 180)
+        elif len(neighbours) == 3:
+            self.image = self.image = Road.image.subsurface((750, 0, 250, 250))
+            for t1 in neighbours:
+                for t2 in neighbours:
+                    for t3 in neighbours:
+                        if t1 != t2 != t3:
+                            x1, y1 = t1
+                            x2, y2 = t2
+                            x3, y3 = t3
+                            if ((x1 > self.x > x2) and self.x == x3) and ((y1 == self.y == y2) and self.y > y3):
+                                self.image = pygame.transform.rotate(self.image, 90)
+                            elif ((x1 > self.x > x2) and self.x == x3) and ((y1 == self.y == y2) and self.y < y3):
+                                self.image = pygame.transform.rotate(self.image, 270)
+                            elif ((x1 == self.x == x2) and x3 > self.x) and ((y1 < self.y < y2) and self.y == y3):
+                                pass
+                            elif ((x1 == self.x == x2) and x3 < self.x) and ((y1 < self.y < y2) and self.y == y3):
+                                self.image = pygame.transform.rotate(self.image, 180)
         self.image = pygame.transform.scale(self.image, (CELL_SIZE, CELL_SIZE))
         self.rect = self.image.get_rect()
         self.rect = self.rect.move(self.x * CELL_SIZE, self.y * CELL_SIZE)
+
+    def update(self):
+        self.rect.move(self.x * CELL_SIZE, self.y * CELL_SIZE)
+        self.update_texture()
 
 
 class Button(pygame.sprite.Sprite):
