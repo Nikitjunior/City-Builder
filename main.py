@@ -74,7 +74,7 @@ class Board:
         self.width = width
         self.height = height
         self.board = [[[y, x, 'nothingbuild'] for x in range(height)] for y in range(width)]
-        self.buildlist = ['дом1', 'house1.png', 10, 30, 8, 1, 40], ['дом2', 'house2.jpg', 30, 60, 20, 2, 110], ['дом3', 'house3.png', 100, 120, 40, 3, 250]
+        self.buildlist = ['дом1', 'house1.png', 10, 30, 8, 1, 40], ['дом2', 'house2.png', 30, 60, 20, 2, 110], ['дом3', 'house3.png', 100, 120, 40, 3, 250]
         self.screen = screen
         self.render()
         self.hood()
@@ -157,7 +157,7 @@ class Shop():
                                     'Требуемая электроэнергия: 1', '40',pygame.transform.scale(load_image('house1.png'),
                                                                                           (130, 130)))
             self.drawbuildinginshop(1, 0, 'Двухэтажный дом', 'Прибыль: 30 (1 мин.) Население: +20',
-                                    'Требуемая электроэнергия: 2', '110', pygame.transform.scale(load_image('house2.jpg'),
+                                    'Требуемая электроэнергия: 2', '110', pygame.transform.scale(load_image('house2.png'),
                                                                                           (130, 120)))
             self.drawbuildinginshop(2, 0, 'Многоквартирный дом', 'Прибыль: 100 (2 мин.) Население: +40',
                                     'Требуемая электроэнергия: 3', '250', pygame.transform.scale(load_image('house3.png'),
