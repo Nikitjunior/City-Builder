@@ -153,6 +153,8 @@ class Field(Cell):
     #def build(self, x, y, li):
         #buildimage = load_image(li[1])
         #screen.blit(buildimage, (x * 50, y * 50))
+
+
 class Board:
     def __init__(self, width: int, height: int, screen, top: int, right: int):
         self.isbuilding = False
@@ -170,7 +172,7 @@ class Board:
 
     def is_clicked(self, pos: tuple):
         x, y = pos
-        return (x // CELL_SIZE, y // CELL_SIZE)
+        # return (x // CELL_SIZE, y // CELL_SIZE)
         if self.isbuilding:
             self.build(x // 50, (y - self.top) // 50, shop.nowbuilding)
         else:
@@ -271,6 +273,7 @@ class Shop():
         screen.blit(text2, (125 + 245 * row, 310 + 250 * col))
         screen.blit(text3, (135 + 245 * row, 320 + 250 * col))
         screen.blit(text4, (210 + 250 * row, 355 + 250 * col))
+
     def shopclickreact(self, pos):
         if 850 <= pos[0] <= 900 and 150 <= pos[1] <= 200:
             self.closeshop()
