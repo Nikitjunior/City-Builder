@@ -2,7 +2,7 @@ import pygame
 import os
 import sys
 
-CELL_SIZE = 50
+CELL_SIZE = 100
 
 
 def load_image(name, colorkey=None):
@@ -167,14 +167,17 @@ class Board:
         self.width = width
         self.height = height
         self.board = [[[y, x, 'nothingbuild'] for x in range(height)] for y in range(width)]
-        self.buildlist = ['дом1', 'house1.png', 10, 30, 8, 1, 40], ['дом2', 'house2.png', 30, 60, 20, 2, 110], ['дом3',
-                                                                                                                'house3.png',
-                                                                                                                100,
-                                                                                                                120, 40,
-                                                                                                                3,
-                                                                                                                250, ], [
-                             'ветряк', 'wind.png', 5, 1, 30], ['солнечная панель', 'solar.png', 9, 2, 55], [
-                             'электростанция', 'station.png', 16, 3, 100]
+        self.buildlist = ['дом', 'дом1', 'house1.png', 10, 30, 8, 1, 40], ['дом', 'дом2', 'house2.png', 30, 60, 20, 2,
+                                                                           110], ['дом', 'дом3',
+                                                                                  'house3.png',
+                                                                                  100,
+                                                                                  120, 40,
+                                                                                  3,
+                                                                                  250, ], [
+                             'электро', 'ветряк', 'wind.png', 5, 1, 30], ['электро', 'солнечная панель', 'solar.png', 9,
+                                                                          2, 55], ['электро',
+                                                                                   'электростанция', 'station.png', 16,
+                                                                                   3, 100]
         self.screen = screen
         self.render()
         self.hood()
@@ -200,22 +203,22 @@ class Board:
         for j in range(self.height):
             for i in range(self.width):
                 if self.board[i][j][2] != 'nothingbuild':
-                    buildimage = pygame.transform.scale(load_image(self.board[i][j][2][1]), (CELL_SIZE, CELL_SIZE))
+                    buildimage = pygame.transform.scale(load_image(self.board[i][j][2][2]), (CELL_SIZE, CELL_SIZE))
                     screen.blit(buildimage, (i * CELL_SIZE, j * CELL_SIZE + self.top))
 
     def hood(self):
         pygame.draw.rect(screen, 'white', (0, 0, 200, 50))
-        coinimage = load_image('coin.jpg')
+        coinimage = pygame.transform.scale(load_image('coin.png'), (50, 50))
         screen.blit(coinimage, (0, 0))
         font = pygame.font.Font(None, 30)
         text = font.render(str(self.coins), True, (255, 217, 25))
-        screen.blit(text, (50, 25))
+        screen.blit(text, (55, 33))
 
-    def updatemoney(self):
-        pass  # todo обновление кол-ва монет при их изменении
+    def updateparameters(self):
+        pass
 
     def build(self, x, y, li):
-        buildimage = pygame.transform.scale(load_image(li[1]), (CELL_SIZE, CELL_SIZE))
+        buildimage = pygame.transform.scale(load_image(li[2]), (CELL_SIZE, CELL_SIZE))
         screen.blit(buildimage, (x * CELL_SIZE, y * CELL_SIZE + self.top))
         self.isbuilding = False
         pygame.display.flip()
@@ -297,7 +300,7 @@ class Shop():
         text3 = font2.render(par2, True, (0, 0, 0))
         text4 = font3.render(cost, True, (255, 217, 25))
         screen.blit(image, (130 + 255 * row, 180 + 250 * col))
-        screen.blit(pygame.transform.scale(load_image('coin.jpg'), (40, 40)), (170 + 250 * row, 340 + 250 * col))
+        screen.blit(pygame.transform.scale(load_image('coin.png'), (35, 35)), (170 + 250 * row, 340 + 250 * col))
         screen.blit(text1, (125 + 240 * row, 155 + 250 * col))
         screen.blit(text2, (125 + 245 * row, 310 + 250 * col))
         screen.blit(text3, (135 + 245 * row, 320 + 250 * col))
