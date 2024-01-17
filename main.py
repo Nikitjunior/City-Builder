@@ -160,6 +160,7 @@ class Field(Cell):
 
 class Board:
     def __init__(self, width: int, height: int, screen, top: int, right: int):
+        self.mnojitel = 1
         self.population = 0
         self.electricity = 0
         self.ispopulation = 0
@@ -177,11 +178,21 @@ class Board:
                                                                                   100,
                                                                                   120, 40,
                                                                                   3,
-                                                                                  250, ], [
-                             'электро', 'ветряк', 'wind.png', 5, 0, 30], ['электро', 'солнечная панель', 'solar.png', 9,
-                                                                          2, 55], ['электро',
-                                                                                   'электростанция', 'station.png', 16,
-                                                                                   3, 100]
+                                                                                  250, ], ['электро', 'ветряк',
+                                                                                           'wind.png', 5, 0, 30], [
+                             'электро', 'солнечная панель', 'solar.png', 9, 2, 55], ['электро',
+                                                                                     'электростанция', 'station.png',
+                                                                                     16,
+                                                                                     3, 100], ['службы',
+                                                                                               'полицейский участок',
+                                                                                               'police.png', 0.25, 7,
+                                                                                               30,
+                                                                                               220], ['службы',
+                                                                                                      'больница',
+                                                                                                      'hospital.png',
+                                                                                                      0.40, 13, 60,
+                                                                                                      380], [
+                             'службы', 'офисное здание', 'office.jpg', 0.55, 22, 100, 650]
         self.screen = screen
         self.render()
         self.hood()
@@ -233,7 +244,7 @@ class Board:
             return False
         if li[0] == 'дом':
             if li[-2] + self.electricity > self.iselectricity:
-                self.errormes = 'Не хватает электричества для постройки!'
+                self.errormes = 'Не хватает электроэнергии для постройки!'
                 return False
             pygame.draw.rect(screen, 'white', (200, 33, 100, 18), 0)
             pygame.draw.rect(screen, 'white', (350, 33, 100, 18), 0)
@@ -253,6 +264,24 @@ class Board:
             self.iselectricity += li[3]
             self.population += li[4]
             self.hood()
+        if li[0] == 'службы':
+            if li[-2] + self.population > self.ispopulation:
+                self.errormes = 'Не хватает населения для постройки!'
+                return False
+            if li[-3] + self.electricity > self.iselectricity:
+                self.errormes = 'Не хватает электроэнергии для постройки!'
+                return False
+            pygame.draw.rect(screen, 'white', (200, 33, 100, 18), 0)
+            pygame.draw.rect(screen, 'white', (350, 33, 100, 18), 0)
+            pygame.display.flip()
+            self.coins -= li[-1]
+            self.electricity += li[-3]
+            self.population += li[-2]
+            self.mnojitel += li[4]
+            self.hood()
+
+
+        # todo если нет дороги...
 
         font = pygame.font.Font(None, 30)
         pygame.draw.rect(screen, 'white', (50, 33, 80, 18), 0)
@@ -266,7 +295,7 @@ class Board:
             screen.blit(buildimage, (x * CELL_SIZE, y * CELL_SIZE + self.top))
             self.board[x][y][2] = li
         self.isbuilding = False
-        pygame.draw.rect(screen, 'white', (500, 0, 500, 50), 0)
+        pygame.draw.rect(screen, 'white', (500, 0, 500, 51), 0)
         font = pygame.font.Font(None, 25)
         text = font.render(self.errormes, True, (255, 0, 0))
         screen.blit(text, (500, 33))
@@ -276,20 +305,19 @@ class Board:
 class Shop():
     def __init__(self, x: int, y: int, hw: int, image):
         self.opened = False
-        # self.buildingsdict = {'Дома': [], 'Комм.службы': [], 'Коммерция': []}
         self.screen = screen
         self.x = x
         self.y = y
         self.hw = hw
         self.shopimage = load_image(image)
-        pygame.draw.rect(screen, (8, 204, 78), (self.x, self.y, self.hw + 1, self.hw),
-                         0)  # todo сделать чтобы при наведении на неё кнопка реагировала(меняла цвет)
+        pygame.draw.rect(screen, (8, 204, 78), (self.x, self.y, self.hw + 1, self.hw), 0)
         self.shopimage = pygame.transform.scale(self.shopimage, (hw, hw))
         screen.blit(self.shopimage, (1000, 50))
         pygame.display.flip()
 
     def startshop(self):
         self.opened = True
+        pygame.draw.rect(screen, 'white', (500, 0, 500, 51), 0)
         self.nowbuilding = ''
         self.copyscreen = screen.copy()
         pygame.draw.rect(screen, (255, 255, 255), (100, 150,
@@ -298,7 +326,7 @@ class Shop():
         self.openshop()
         housemenuim = pygame.transform.scale(load_image('house1.png'), (50, 50))
         electromenuim = pygame.transform.scale(load_image('electro.png'), (50, 50))
-        othersmenuim = pygame.transform.scale(load_image('hospital.png'), (50, 50))
+        othersmenuim = pygame.transform.scale(load_image('office.jpg'), (50, 50))
         closeim = pygame.transform.scale(load_image('close.png'), (50, 50))
         screen.blit(closeim, (850, 150))
         screen.blit(housemenuim, (850, 200))
@@ -315,29 +343,37 @@ class Shop():
                                     pygame.transform.scale(load_image('house1.png'),
                                                            (130, 130)))
             self.drawbuildinginshop(1, 0, 'Двухэтажный дом', 'Прибыль: 30 (1 мин.) Население: +20',
-                                    'Требуемая электроэнергия: 2', '110',
+                                    'Требуемая электроэнергия: 2', '150',
                                     pygame.transform.scale(load_image('house2.png'),
                                                            (130, 130)))
             self.drawbuildinginshop(2, 0, 'Многоквартирный дом', 'Прибыль: 100 (2 мин.) Население: +40',
-                                    'Требуемая электроэнергия: 3', '250',
+                                    'Требуемая электроэнергия: 3', '340',
                                     pygame.transform.scale(load_image('house3.png'),
                                                            (130, 130)))
-            pygame.display.flip()
-        if self.type == 'коммуналка':
+        if self.type == 'электро':
             pygame.draw.rect(screen, (255, 255, 255), (100, 150,
                                                        750, 500), 0)
-            self.drawbuildinginshop(0, 0, 'Ветряк', 'Приносит электроэнергии: 5', 'Требуемое население: 0', '30',
+            self.drawbuildinginshop(0, 0, 'Ветряк', 'Приносит электроэнергии: 5', 'Требуемое население: 0', '60',
                                     pygame.transform.scale(load_image('wind.png'), (130, 130)))
             self.drawbuildinginshop(1, 0, 'Солнечная панель', 'Приносит электроэнергии: 9', 'Требуемое население: 2',
-                                    '55', pygame.transform.scale(load_image('solar.png'), (130, 130)))
+                                    '125', pygame.transform.scale(load_image('solar.png'), (130, 130)))
             self.drawbuildinginshop(2, 0, 'Электростанция', 'Приносит электорэнергии: 16', 'Требуемое население: 3',
-                                    '100', pygame.transform.scale(load_image('station.png'), (130, 130)))
-            pygame.display.flip()
+                                    '280', pygame.transform.scale(load_image('station.png'), (130, 130)))
 
-            if self.type == 'службы':
-                pygame.draw.rect(screen, (255, 255, 255), (100, 150,
-                                                           750, 500), 0)
-                pass
+        if self.type == 'службы':
+            pygame.draw.rect(screen, (255, 255, 255), (100, 150,
+                                                       750, 500), 0)
+            self.drawbuildinginshop(0, 0, 'Полицейский участок', 'Приносит: увеличение прибыли на 25%',
+                                    'Требуемое население: 30, электричество: 7', '220',
+                                    pygame.transform.scale(load_image('police.png'), (115, 115)))
+            self.drawbuildinginshop(1, 0, 'Больница', 'Приносит: увеличение прибыли на 40%',
+                                    'Требуемое население: 60, электричество: 13',
+                                    '380', pygame.transform.scale(load_image('hospital.png'), (130, 130)))
+            self.drawbuildinginshop(2, 0, 'Офисное здание', 'Приносит: увеличение прибыли на 55%',
+                                    'Требуемое население: 100, электричество: 22',
+                                    '650', pygame.transform.scale(load_image('office.jpg'), (130, 130)))
+
+        pygame.display.flip()
 
     def drawbuildinginshop(self, row, col, name, par1, par2, cost, image):
         font1 = pygame.font.Font(None, 30)
@@ -361,7 +397,7 @@ class Shop():
             self.type = 'дома'
             self.openshop()
         if 850 <= pos[0] <= 900 and 250 <= pos[1] <= 300:
-            self.type = 'коммуналка'
+            self.type = 'электро'
             self.openshop()
         if 850 <= pos[0] <= 900 and 300 <= pos[1] <= 350:
             self.type = 'службы'
@@ -369,22 +405,28 @@ class Shop():
         if 100 <= pos[0] <= 350 and 150 <= pos[1] <= 400:
             if self.type == 'дома':
                 self.nowbuilding = board.buildlist[0]
-            if self.type == 'коммуналка':
+            if self.type == 'электро':
                 self.nowbuilding = board.buildlist[3]
+            if self.type == 'службы':
+                self.nowbuilding = board.buildlist[6]
             self.closeshop()
             board.isbuilding = True
         if 350 < pos[0] < 600 and 150 <= pos[1] <= 400:
             if self.type == 'дома':
                 self.nowbuilding = board.buildlist[1]
-            if self.type == 'коммуналка':
+            if self.type == 'электро':
                 self.nowbuilding = board.buildlist[4]
+            if self.type == 'службы':
+                self.nowbuilding = board.buildlist[7]
             self.closeshop()
             board.isbuilding = True
         if 600 <= pos[0] <= 850 and 150 <= pos[1] <= 400:
             if self.type == 'дома':
                 self.nowbuilding = board.buildlist[2]
-            if self.type == 'коммуналка':
+            if self.type == 'электро':
                 self.nowbuilding = board.buildlist[5]
+            if self.type == 'службы':
+                self.nowbuilding = board.buildlist[8]
             self.closeshop()
             board.isbuilding = True
 
