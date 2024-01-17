@@ -2,7 +2,7 @@ import pygame
 import os
 import sys
 
-CELL_SIZE = 100
+CELL_SIZE = 50
 
 
 def load_image(name, colorkey=None):
@@ -160,10 +160,14 @@ class Field(Cell):
 
 class Board:
     def __init__(self, width: int, height: int, screen, top: int, right: int):
+        self.population = 0
+        self.electricity = 0
+        self.ispopulation = 0
+        self.iselectricity = 0
         self.isbuilding = False
         self.top = top
         self.right = right
-        self.coins = 100
+        self.coins = 1000
         self.width = width
         self.height = height
         self.board = [[[y, x, 'nothingbuild'] for x in range(height)] for y in range(width)]
@@ -174,7 +178,7 @@ class Board:
                                                                                   120, 40,
                                                                                   3,
                                                                                   250, ], [
-                             'электро', 'ветряк', 'wind.png', 5, 1, 30], ['электро', 'солнечная панель', 'solar.png', 9,
+                             'электро', 'ветряк', 'wind.png', 5, 0, 30], ['электро', 'солнечная панель', 'solar.png', 9,
                                                                           2, 55], ['электро',
                                                                                    'электростанция', 'station.png', 16,
                                                                                    3, 100]
@@ -194,7 +198,7 @@ class Board:
     # todo вместо этого сделать по нажатию вывод инфы о здании, дороге итп.
 
     def render(self):
-        boardfield = load_image('fon-trava.jpg')
+        boardfield = pygame.transform.scale(load_image('fon-trava.png'), (1000, 700))
         screen.blit(boardfield, (0, self.top))
         for i in range(self.height):
             for j in range(self.width):
@@ -213,16 +217,60 @@ class Board:
         font = pygame.font.Font(None, 30)
         text = font.render(str(self.coins), True, (255, 217, 25))
         screen.blit(text, (55, 33))
+        peopleimage = pygame.transform.scale(load_image('people.png'), (50, 50))
+        screen.blit(peopleimage, (150, 0))
+        text = font.render(str(f'{self.population} / {self.ispopulation}'), True, (0, 180, 255))
+        screen.blit(text, (200, 33))
+        electroimage = pygame.transform.scale(load_image('electro.png'), (50, 50))
+        screen.blit(electroimage, (300, 0))
+        text = font.render(str(f'{self.electricity} / {self.iselectricity}'), True, (250, 150, 0))
+        screen.blit(text, (350, 33))
 
-    def updateparameters(self):
-        pass
+    def updateparameters(self, li):
+        self.errormes = ''
+        if self.coins - li[-1] < 0:
+            self.errormes = 'Не хватает денег для постройки!'
+            return False
+        if li[0] == 'дом':
+            if li[-2] + self.electricity > self.iselectricity:
+                self.errormes = 'Не хватает электричества для постройки!'
+                return False
+            pygame.draw.rect(screen, 'white', (200, 33, 100, 18), 0)
+            pygame.draw.rect(screen, 'white', (350, 33, 100, 18), 0)
+            pygame.display.flip()
+            self.coins -= li[-1]
+            self.electricity += li[-2]
+            self.ispopulation += li[5]
+            self.hood()
+        if li[0] == 'электро':
+            if li[-2] + self.population > self.ispopulation:
+                self.errormes = 'Не хватает населения для постройки!'
+                return False
+            pygame.draw.rect(screen, 'white', (200, 33, 100, 18), 0)
+            pygame.draw.rect(screen, 'white', (350, 33, 100, 18), 0)
+            pygame.display.flip()
+            self.coins -= li[-1]
+            self.iselectricity += li[3]
+            self.population += li[4]
+            self.hood()
+
+        font = pygame.font.Font(None, 30)
+        pygame.draw.rect(screen, 'white', (50, 33, 80, 18), 0)
+        text = font.render(str(self.coins), True, (255, 217, 25))
+        screen.blit(text, (55, 33))
+        return True
 
     def build(self, x, y, li):
-        buildimage = pygame.transform.scale(load_image(li[2]), (CELL_SIZE, CELL_SIZE))
-        screen.blit(buildimage, (x * CELL_SIZE, y * CELL_SIZE + self.top))
+        if self.updateparameters(li):
+            buildimage = pygame.transform.scale(load_image(li[2]), (CELL_SIZE, CELL_SIZE))
+            screen.blit(buildimage, (x * CELL_SIZE, y * CELL_SIZE + self.top))
+            self.board[x][y][2] = li
         self.isbuilding = False
+        pygame.draw.rect(screen, 'white', (500, 0, 500, 50), 0)
+        font = pygame.font.Font(None, 25)
+        text = font.render(self.errormes, True, (255, 0, 0))
+        screen.blit(text, (500, 33))
         pygame.display.flip()
-        self.board[x][y][2] = li
 
 
 class Shop():
@@ -278,7 +326,7 @@ class Shop():
         if self.type == 'коммуналка':
             pygame.draw.rect(screen, (255, 255, 255), (100, 150,
                                                        750, 500), 0)
-            self.drawbuildinginshop(0, 0, 'Ветряк', 'Приносит электроэнергии: 5', 'Требуемое население: 1', '30',
+            self.drawbuildinginshop(0, 0, 'Ветряк', 'Приносит электроэнергии: 5', 'Требуемое население: 0', '30',
                                     pygame.transform.scale(load_image('wind.png'), (130, 130)))
             self.drawbuildinginshop(1, 0, 'Солнечная панель', 'Приносит электроэнергии: 9', 'Требуемое население: 2',
                                     '55', pygame.transform.scale(load_image('solar.png'), (130, 130)))
