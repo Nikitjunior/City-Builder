@@ -172,7 +172,7 @@ class Board:
         self.width = width
         self.height = height
         self.board = [[[y, x, 'nothingbuild'] for x in range(height)] for y in range(width)]
-        self.buildlist = ['дом', 'дом1', 'house1.png', 10, 30, 8, 1, 40], ['дом', 'дом2', 'house2.png', 30, 60, 20, 2,
+        self.buildlist = [['дом', 'дом1', 'house1.png', 10, 30, 8, 1, 40], ['дом', 'дом2', 'house2.png', 30, 60, 20, 2,
                                                                            110], ['дом', 'дом3',
                                                                                   'house3.png',
                                                                                   100,
@@ -192,7 +192,7 @@ class Board:
                                                                                                       'hospital.png',
                                                                                                       0.40, 13, 60,
                                                                                                       380], [
-                             'службы', 'офисное здание', 'office.jpg', 0.55, 22, 100, 650]
+                             'службы', 'офисное здание', 'office.jpg', 0.55, 22, 100, 650]]
         self.screen = screen
         self.render()
         self.hood()
@@ -366,7 +366,7 @@ class Shop():
             self.drawbuildinginshop(0, 0, 'Полицейский участок', 'Приносит: увеличение прибыли на 25%',
                                     'Требуемое население: 30, электричество: 7', '220',
                                     pygame.transform.scale(load_image('police.png'), (115, 115)))
-            self.drawbuildinginshop(1, 0, 'Больница', 'Приносит: увеличение прибыли на 40%',
+            self.drawbuildinginshop(1, 0, '     Больница', 'Приносит: увеличение прибыли на 40%',
                                     'Требуемое население: 60, электричество: 13',
                                     '380', pygame.transform.scale(load_image('hospital.png'), (130, 130)))
             self.drawbuildinginshop(2, 0, 'Офисное здание', 'Приносит: увеличение прибыли на 55%',
@@ -434,7 +434,6 @@ class Shop():
         board.render()
         pygame.display.flip()
         self.opened = False
-
 
 if __name__ == '__main__':
     balance = 100
