@@ -159,8 +159,8 @@ class Building(pygame.sprite.Sprite):
         if self.image:
             self.bring_income()
             self.rect.move(self.x / CELL_SIZE, self.y / CELL_SIZE + TOP)
-        else:
-            raise NoImageError
+        #else:
+            #raise NoImageError
 
 
 class Field:
@@ -379,13 +379,13 @@ class Shop:
             pygame.draw.rect(screen, (255, 255, 255), (100, 150,
                                                        750, 500), 0)
             self.drawbuildinginshop(0, 0, 'Полицейский участок', 'Приносит: увеличение прибыли на 25%',
-                                    'Требуемое население: 30, электричество: 7', '220',
+                                    'Требуемое население: 30, энергия: 7', '220',
                                     pygame.transform.scale(load_image('police.png'), (115, 115)))
             self.drawbuildinginshop(1, 0, '     Больница', 'Приносит: увеличение прибыли на 40%',
-                                    'Требуемое население: 60, электричество: 13',
+                                    'Требуемое население: 60, энергия: 13',
                                     '380', pygame.transform.scale(load_image('hospital.png'), (130, 130)))
             self.drawbuildinginshop(2, 0, 'Офисное здание', 'Приносит: увеличение прибыли на 55%',
-                                    'Требуемое население: 100, электричество: 22',
+                                    'Требуемое население: 100, энергия: 22',
                                     '650', pygame.transform.scale(load_image('office.jpg'), (130, 130)))
 
         pygame.display.flip()
@@ -471,12 +471,6 @@ if __name__ == '__main__':
     clock = pygame.time.Clock()
     FPS = 60
     MAX_LEVEL = 10
-
-    buildings = pygame.sprite.Group()
-    building = Building(buildings, 0, 0, 400, 10)
-    board[0][0] = building
-    building.set_image("house2.png")
-    buildings.draw(screen)
 
     while running:
         for event in pygame.event.get():
