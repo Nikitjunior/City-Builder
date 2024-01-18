@@ -44,15 +44,17 @@ class Button(pygame.sprite.Sprite):
 class Building(pygame.sprite.Sprite):
     image = load_image("house1.png")
 
-    def __init__(self, group, x: int, y: int):
+    def __init__(self, group, x: int, y: int, building_cost: int, start_income: int):
         super().__init__(group)
         self.x, self.y = x, y
         self.lvl = 0
-        self.income = 1
+        self.income = start_income
         self.image = Building.image
         self.image = pygame.transform.scale(self.image, (CELL_SIZE, CELL_SIZE))
         self.rect = self.image.get_rect()
         self.rect = self.rect.move(self.x * CELL_SIZE, self.y * CELL_SIZE)
+        self.building_cost = building_cost
+        self.upgrade_cost = building_cost
 
     def __repr__(self):
         return "B"
@@ -67,7 +69,12 @@ class Building(pygame.sprite.Sprite):
         self.image = pygame.transform.scale(self.image, (CELL_SIZE, CELL_SIZE))
 
     def level_up(self):
-        pass
+        if self.lvl < MAX_LEVEL:
+            if balance >= self.upgrade_cost:
+                self.lvl += 1
+                self.income = round(self.income * 1.5)
+                upgrade_cost_multiplier = 2
+                self.upgrade_cost = round(upgrade_cost_multiplier * self.upgrade_cost)
 
     def update(self):
         if self.image:
@@ -120,7 +127,7 @@ class Board:
 
 
 if __name__ == '__main__':
-    balance = 0
+    balance = 10000000000
     running = True
     pygame.init()
     pygame.display.set_caption('City Builder')
@@ -132,9 +139,10 @@ if __name__ == '__main__':
 
     clock = pygame.time.Clock()
     FPS = 60
+    MAX_LEVEL = 10
 
     buildings = pygame.sprite.Group()
-    building = Building(buildings, 0, 0)
+    building = Building(buildings, 0, 0, 400, 10)
     board[0][0] = building
     building.set_image("house2.png")
     buildings.draw(screen)
@@ -147,8 +155,13 @@ if __name__ == '__main__':
                 if event.button == pygame.BUTTON_LEFT:
                     x, y = board.click_pos()
                     if isinstance(board[y][x], Field):
-                        board[y][x] = Building(buildings, x, y)
+                        board[y][x] = Building(buildings, x, y, 400, 10)
                         buildings.draw(screen)
+                    if isinstance(board[y][x], Building):
+                        board[y][x].level_up()
+                        print(f"lvl_up: {board[y][x].lvl}")
+                        print(board[y][x].income)
+                        print(board[y][x].upgrade_cost)
         buildings.update()
         clock.tick(FPS)
         pygame.display.flip()
