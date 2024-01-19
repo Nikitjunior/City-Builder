@@ -174,6 +174,7 @@ class Building(pygame.sprite.Sprite):
 class House(Building):
     def __init__(self, group, x, y, building_cost, start_income, ispopulation, electrcity):
         super().__init__(group, x, y, building_cost, start_income)
+        global balance
 
         self.x, self.y = x, y
         self.lvl = 0
@@ -186,7 +187,7 @@ class House(Building):
         self.upgrade_cost = building_cost
 
         self.population = ispopulation
-        board.coins -= building_cost
+        balance -= building_cost
         board.electricity += electrcity
         board.ispopulation += self.population
 
@@ -196,6 +197,7 @@ class House(Building):
 
 class Electricity(Building):
     def __init__(self, group, x, y, building_cost, start_income, population, iselectrcity):
+        global balance
         super().__init__(group, x, y, building_cost, start_income)
         self.x, self.y = x, y
         self.lvl = 0
@@ -205,13 +207,14 @@ class Electricity(Building):
         self.rect = self.rect.move(self.x * CELL_SIZE, self.y * CELL_SIZE + TOP)
         self.building_cost = building_cost
         self.upgrade_cost = building_cost
-        board.coins -= building_cost
+        balance -= building_cost
         board.iselectricity += iselectrcity
         board.population += population
 
 
 class Service(Building):
     def __init__(self, group, x, y, building_cost, start_income, population, electrcity, mnojitel):
+        global balance
         super().__init__(group, x, y, building_cost, start_income)
         self.x, self.y = x, y
         self.lvl = 0
@@ -222,7 +225,7 @@ class Service(Building):
         self.building_cost = building_cost
         self.upgrade_cost = building_cost
         board.mnojitel += mnojitel
-        board.coins -= building_cost
+        balance -= building_cost
         board.electricity += electrcity
         board.population += population
 
@@ -245,7 +248,6 @@ class Board:
         self.isbuilding = False
         self.top = top
         self.right = right
-        self.coins = 10000
         self.width = width
         self.height = height
         self.board = [[Field(x, y) for x in range(width)] for y in range(height)]
@@ -285,7 +287,11 @@ class Board:
         coinimage = pygame.transform.scale(load_image('coin.png'), (50, 50))
         screen.blit(coinimage, (0, 0))
         font = pygame.font.Font(None, 30)
-        text = font.render(str(self.coins), True, (255, 217, 25))
+        if balance >= 1_000_000:
+            line = f"{round(balance / 1_000_000, 1)}M"
+        else:
+            line = str(round(balance))
+        text = font.render(line, True, (255, 217, 25))
         screen.blit(text, (55, 33))
         peopleimage = pygame.transform.scale(load_image('people.png'), (50, 50))
         screen.blit(peopleimage, (150, 0))
@@ -298,7 +304,7 @@ class Board:
 
     def houseupdateparameters(self, cost, el):
         self.errormes = ''
-        if self.coins - cost < 0:
+        if balance - cost < 0:
             self.errormes = 'Не хватает денег для постройки!'
             return False
         if el + self.electricity > self.iselectricity:
@@ -308,7 +314,7 @@ class Board:
 
     def electroupdateparameters(self, cost, people):
         self.errormes = ''
-        if self.coins - cost < 0:
+        if balance - cost < 0:
             self.errormes = 'Не хватает денег для постройки!'
             return False
         if people + self.population > self.ispopulation:
@@ -318,7 +324,7 @@ class Board:
 
     def serviceupdateparameters(self, cost, people, el):
         self.errormes = ''
-        if self.coins - cost < 0:
+        if balance - cost < 0:
             self.errormes = 'Не хватает денег для постройки!'
             return False
         if people + self.population > self.ispopulation:
@@ -338,6 +344,10 @@ class Board:
         pygame.display.flip()
         board.isbuilding = False
         board.hood()
+
+    def update_balance(self):
+        self.hood()
+
 
 
 class Shop:
@@ -447,7 +457,7 @@ class Shop:
             if self.type == 'дома':
                 self.checkhousebuilding(40, 10, 8, 1, 'house1.png')
             if self.type == 'электро':
-                self.checkelectrobuilding(30, 0, 5, 'wind.png')
+                self.checkelectrobuilding(60, 0, 5, 'wind.png')
             if self.type == 'службы':
                 self.checkservicebuilding(220, 0.25, 30, 7, 'police.png')
         elif 350 < pos[0] < 600 and 150 <= pos[1] <= 400:
@@ -539,7 +549,7 @@ def excepthook(exc_type, exc_value, exc_tb):  # для показа ошибок
 sys.excepthook = excepthook
 
 if __name__ == '__main__':
-    balance = 1000
+    balance = 100
     running = True
     pygame.init()
     pygame.display.set_caption('City Builder')
@@ -646,6 +656,7 @@ if __name__ == '__main__':
                         roadshop.build()
                 else:
                     shop.shopclickreact(event.pos)
+        board.update_balance()
         buildings.update()
         clock.tick(FPS)
         pygame.display.flip()
