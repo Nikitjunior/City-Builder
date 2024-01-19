@@ -313,6 +313,7 @@ class Board:
         return True
 
     def build(self, x, y, item):
+        building_sound.play()
         board[y][x] = item
         buildings.draw(screen)
         pygame.display.flip()
@@ -411,6 +412,7 @@ class Shop:
     def shopclickreact(self, pos):
         if 850 <= pos[0] <= 900 and 150 <= pos[1] <= 200:
             self.closeshop()
+            return
         elif 850 <= pos[0] <= 900 and 200 <= pos[1] <= 250:
             self.type = 'дома'
             self.openshop()
@@ -464,6 +466,14 @@ if __name__ == '__main__':
     pygame.init()
     pygame.display.set_caption('City Builder')
 
+    pygame.mixer.music.load("sounds/music.mp3")
+    pygame.mixer.music.play(-1)
+    pygame.mixer.music.set_volume(0.05)
+    building_sound = pygame.mixer.Sound("sounds/building.ogg")
+    building_sound.set_volume(0.09)
+    click_sound = pygame.mixer.Sound("sounds/click.wav")
+    click_sound.set_volume(0.1)
+
     SIZE = WIDTH, HEIGHT = 1100, 750
     CELL_SIZE = 50
     TOP = 50
@@ -486,6 +496,7 @@ if __name__ == '__main__':
             if event.type == pygame.QUIT:
                 running = False
             if event.type == pygame.MOUSEBUTTONDOWN:
+                click_sound.play()
                 if event.button == pygame.BUTTON_LEFT:
                     if board.isbuilding:
                         x, y = board.click_pos()
