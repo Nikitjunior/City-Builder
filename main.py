@@ -162,7 +162,7 @@ class Building(pygame.sprite.Sprite):
 
 
 class House(Building):
-    def __init__(self, group, x, y, building_cost, start_income, population):
+    def __init__(self, group, x, y, building_cost, start_income, ispopulation, electrcity):
         super().__init__(group, x, y, building_cost, start_income)
 
         self.x, self.y = x, y
@@ -175,11 +175,49 @@ class House(Building):
         self.building_cost = building_cost
         self.upgrade_cost = building_cost
 
-        self.population = population
-        board.population += self.population
+        self.population = ispopulation
+        board.coins -= building_cost
+        board.electricity += electrcity
+        board.ispopulation += self.population
+        board.hood()
 
     def __repr__(self):
         return "H"
+
+
+class Electricity(Building):
+    def __init__(self, group, x, y, building_cost, start_income, population, iselectrcity):
+        super().__init__(group, x, y, building_cost, start_income)
+        self.x, self.y = x, y
+        self.lvl = 0
+        self.image = Building.image
+        self.image = pygame.transform.scale(self.image, (CELL_SIZE, CELL_SIZE))
+        self.rect = self.image.get_rect()
+        self.rect = self.rect.move(self.x * CELL_SIZE, self.y * CELL_SIZE + TOP)
+        self.building_cost = building_cost
+        self.upgrade_cost = building_cost
+        board.coins -= building_cost
+        board.iselectricity += iselectrcity
+        board.population += population
+        board.hood()
+
+
+class Service(Building):
+    def __init__(self, group, x, y, building_cost, start_income, population, electrcity, mnojitel):
+        super().__init__(group, x, y, building_cost, start_income)
+        self.x, self.y = x, y
+        self.lvl = 0
+        self.image = Building.image
+        self.image = pygame.transform.scale(self.image, (CELL_SIZE, CELL_SIZE))
+        self.rect = self.image.get_rect()
+        self.rect = self.rect.move(self.x * CELL_SIZE, self.y * CELL_SIZE + TOP)
+        self.building_cost = building_cost
+        self.upgrade_cost = building_cost
+        board.mnojitel += mnojitel
+        board.coins -= building_cost
+        board.electricity += electrcity
+        board.population += population
+        board.hood()
 
 
 class Field:
@@ -200,26 +238,14 @@ class Board:
         self.isbuilding = False
         self.top = top
         self.right = right
-        self.coins = 1000
+        self.coins = 10000
         self.width = width
         self.height = height
         self.board = [[Field(x, y) for x in range(width)] for y in range(height)]
-        self.buildlist = [['дом', 'дом1', 'house1.png', 10, 30, 8, 1, 40],
-                          ['дом', 'дом2', 'house2.png', 30, 60, 20, 2, 110],
-                          ['дом', 'дом3', 'house3.png', 100, 120, 40, 3, 250, ],
-                          ['электро', 'ветряк', 'wind.png', 5, 0, 30],
-                          ['электро', 'солнечная панель', 'solar.png', 9, 2, 55],
-                          ['электро', 'электростанция', 'station.png', 16, 3, 100],
-                          ['службы', 'полицейский участок', 'police.png', 0.25, 7, 30, 220],
-                          ['службы', 'больница', 'hospital.png', 0.40, 13, 60, 380],
-                          ['службы', 'офисное здание', 'office.jpg', 0.55, 22, 100, 650]]
         self.screen = screen
         self.render()
         self.hood()
         pygame.display.flip()
-
-
-    # todo вместо этого сделать по нажатию вывод инфы о здании, дороге итп.
 
     def __getitem__(self, index):
         return self.board[index]
@@ -247,6 +273,8 @@ class Board:
 
     def hood(self):
         pygame.draw.rect(screen, 'white', (0, 0, 200, 50))
+        pygame.draw.rect(screen, 'white', (200, 33, 100, 18), 0)
+        pygame.draw.rect(screen, 'white', (350, 33, 100, 18), 0)
         coinimage = pygame.transform.scale(load_image('coin.png'), (50, 50))
         screen.blit(coinimage, (0, 0))
         font = pygame.font.Font(None, 30)
@@ -261,55 +289,37 @@ class Board:
         text = font.render(str(f'{self.electricity} / {self.iselectricity}'), True, (250, 150, 0))
         screen.blit(text, (350, 33))
 
-    def updateparameters(self, li):
+    def houseupdateparameters(self, cost, el):
         self.errormes = ''
-        if self.coins - li[-1] < 0:
+        if self.coins - cost < 0:
             self.errormes = 'Не хватает денег для постройки!'
             return False
-        if li[0] == 'дом':
-            if li[-2] + self.electricity > self.iselectricity:
-                self.errormes = 'Не хватает электроэнергии для постройки!'
-                return False
-            pygame.draw.rect(screen, 'white', (200, 33, 100, 18), 0)
-            pygame.draw.rect(screen, 'white', (350, 33, 100, 18), 0)
-            pygame.display.flip()
-            self.coins -= li[-1]
-            self.electricity += li[-2]
-            self.ispopulation += li[5]
-            self.hood()
-        if li[0] == 'электро':
-            if li[-2] + self.population > self.ispopulation:
-                self.errormes = 'Не хватает населения для постройки!'
-                return False
-            pygame.draw.rect(screen, 'white', (200, 33, 100, 18), 0)
-            pygame.draw.rect(screen, 'white', (350, 33, 100, 18), 0)
-            pygame.display.flip()
-            self.coins -= li[-1]
-            self.iselectricity += li[3]
-            self.population += li[4]
-            self.hood()
-        if li[0] == 'службы':
-            if li[-2] + self.population > self.ispopulation:
-                self.errormes = 'Не хватает населения для постройки!'
-                return False
-            if li[-3] + self.electricity > self.iselectricity:
-                self.errormes = 'Не хватает электроэнергии для постройки!'
-                return False
-            pygame.draw.rect(screen, 'white', (200, 33, 100, 18), 0)
-            pygame.draw.rect(screen, 'white', (350, 33, 100, 18), 0)
-            pygame.display.flip()
-            self.coins -= li[-1]
-            self.electricity += li[-3]
-            self.population += li[-2]
-            self.mnojitel += li[4]
-            self.hood()
+        if el + self.electricity > self.iselectricity:
+            self.errormes = 'Не хватает электроэнергии для постройки!'
+            return False
+        return True
 
-        # todo если нет дороги...
+    def electroupdateparameters(self, cost, people):
+        self.errormes = ''
+        if self.coins - cost < 0:
+            self.errormes = 'Не хватает денег для постройки!'
+            return False
+        if people + self.population > self.ispopulation:
+            self.errormes = 'Не хватает населения для постройки!'
+            return False
+        return True
 
-        font = pygame.font.Font(None, 30)
-        pygame.draw.rect(screen, 'white', (50, 33, 80, 18), 0)
-        text = font.render(str(self.coins), True, (255, 217, 25))
-        screen.blit(text, (55, 33))
+    def serviceupdateparameters(self, cost, people, el):
+        self.errormes = ''
+        if self.coins - cost < 0:
+            self.errormes = 'Не хватает денег для постройки!'
+            return False
+        if people + self.population > self.ispopulation:
+            self.errormes = 'Не хватает населения для постройки!'
+            return False
+        if el + self.electricity > self.iselectricity:
+            self.errormes = 'Не хватает электроэнергии для постройки!'
+            return False
         return True
 
     def build(self, x, y, item):
@@ -374,9 +384,9 @@ class Shop:
                                                        750, 500), 0)
             self.drawbuildinginshop(0, 0, 'Ветряк', 'Приносит электроэнергии: 5', 'Требуемое население: 0', '60',
                                     pygame.transform.scale(load_image('wind.png'), (130, 130)))
-            self.drawbuildinginshop(1, 0, 'Солнечная панель', 'Приносит электроэнергии: 9', 'Требуемое население: 2',
+            self.drawbuildinginshop(1, 0, 'Солнечная панель', 'Приносит электроэнергии: 9', 'Требуемое население: 4',
                                     '125', pygame.transform.scale(load_image('solar.png'), (130, 130)))
-            self.drawbuildinginshop(2, 0, 'Электростанция', 'Приносит электорэнергии: 16', 'Требуемое население: 3',
+            self.drawbuildinginshop(2, 0, 'Электростанция', 'Приносит электорэнергии: 16', 'Требуемое население: 7',
                                     '280', pygame.transform.scale(load_image('station.png'), (130, 130)))
 
         if self.type == 'службы':
@@ -424,29 +434,68 @@ class Shop:
             self.openshop()
         elif 100 <= pos[0] <= 350 and 150 <= pos[1] <= 400:
             if self.type == 'дома':
-                self.selected = House(buildings, 0, 0, 40, 10, 8)
+                self.checkhousebuilding(40, 10, 8, 1, 'house1.png')
             if self.type == 'электро':
-                self.nowbuilding = board.buildlist[3]
+                self.checkelectrobuilding(30, 0, 5, 'wind.png')
             if self.type == 'службы':
-                self.nowbuilding = board.buildlist[6]
+                self.checkservicebuilding(220, 0.25, 30, 7, 'police.png')
         elif 350 < pos[0] < 600 and 150 <= pos[1] <= 400:
             if self.type == 'дома':
-                item = House(buildings, 0, 0, 150, 30, 20)
-                item.set_image("house2.png")
-                self.selected = item
+                self.checkhousebuilding(150, 30, 20, 2, 'house2.png')
             if self.type == 'электро':
-                self.nowbuilding = board.buildlist[4]
+                self.checkelectrobuilding(125, 4, 9, 'solar.png')
             if self.type == 'службы':
-                self.nowbuilding = board.buildlist[7]
+                self.checkservicebuilding(380, 0.4, 60, 13, 'hospital.png')
         elif 600 <= pos[0] <= 850 and 150 <= pos[1] <= 400:
             if self.type == 'дома':
-                item = House(buildings, 0, 0, 340, 100, 40)
-                item.set_image("house3.png")
-                self.selected = item
+                self.checkhousebuilding(340, 100, 40, 3, 'house3.png')
             if self.type == 'электро':
-                self.nowbuilding = board.buildlist[5]
+                self.checkelectrobuilding(280, 7, 16, 'station.png')
             if self.type == 'службы':
-                self.nowbuilding = board.buildlist[8]
+                self.checkservicebuilding(650, 0.55, 100, 22, 'office.jpg')
+
+    def checkhousebuilding(self, cost, income, population, electricity, image):
+        bool = board.houseupdateparameters(cost, electricity)
+        if bool:
+            item = House(buildings, 0, 0, cost, income, population, electricity)
+            item.set_image(image)
+            self.selected = item
+            self.commitbuliding()
+        if not bool:
+            pygame.draw.rect(screen, 'white', (500, 0, 500, 51), 0)
+            font = pygame.font.Font(None, 25)
+            text = font.render(str(board.errormes), True, 'red')
+            screen.blit(text, (500, 33))
+
+    def checkelectrobuilding(self, cost, population, electricity, image):
+        bool = board.electroupdateparameters(cost, population)
+        if bool:
+            income = 0  # не дает прибыли, нужно только для инициализации родительского класса класса building
+            item = Electricity(buildings, 0, 0, cost, income, population, electricity)
+            item.set_image(image)
+            self.selected = item
+            self.commitbuliding()
+        if not bool:
+            pygame.draw.rect(screen, 'white', (500, 0, 500, 51), 0)
+            font = pygame.font.Font(None, 25)
+            text = font.render(str(board.errormes), True, 'red')
+            screen.blit(text, (500, 33))
+
+    def checkservicebuilding(self, cost, mnojitel, population, electricity, image):
+        bool = board.serviceupdateparameters(cost, population, electricity)
+        if bool:
+            income = 0  # не дает прибыли, нужно только для инициализации родительского класса класса building
+            item = Service(buildings, 0, 0, cost, income, population, electricity, mnojitel)
+            item.set_image(image)
+            self.selected = item
+            self.commitbuliding()
+        if not bool:
+            pygame.draw.rect(screen, 'white', (500, 0, 500, 51), 0)
+            font = pygame.font.Font(None, 25)
+            text = font.render(str(board.errormes), True, 'red')
+            screen.blit(text, (500, 33))
+
+    def commitbuliding(self):
         buildings.remove_internal(self.selected)
         self.closeshop()
         buildings.draw(screen)
@@ -457,6 +506,7 @@ class Shop:
     def closeshop(self):
         board.render()
         pygame.display.flip()
+        buildings.draw(screen)
         self.opened = False
 
 
