@@ -1,7 +1,7 @@
 import pygame
 import os
 import sys
-
+import traceback
 
 def load_image(name, colorkey=None):
     fullname = os.path.join('data_images', name)
@@ -11,7 +11,13 @@ def load_image(name, colorkey=None):
     image = pygame.image.load(fullname)
     return image
 
-
+def load_sound(name):
+    fullname = os.path.join('sounds', name)
+    if not os.path.isfile(fullname):
+        print(f"Файл со звуком '{fullname}' не найден")
+        sys.exit()
+    sound = pygame.mixer.Sound(fullname)
+    return sound
 class Road(pygame.sprite.Sprite):
     image = load_image("roads.png")
 
@@ -518,11 +524,11 @@ if __name__ == '__main__':
     pygame.mixer.music.load("sounds/music.mp3")
     pygame.mixer.music.play(-1)
     pygame.mixer.music.set_volume(0.05)
-    building_sound = pygame.mixer.Sound("sounds/building.ogg")
+    building_sound = load_sound('building.ogg')
     building_sound.set_volume(0.09)
-    click_sound = pygame.mixer.Sound("sounds/click.wav")
+    click_sound = load_sound("click.wav")
     click_sound.set_volume(0.1)
-    electro_sound = pygame.mixer.Sound("sounds/electro.ogg")
+    electro_sound = load_sound("electro.ogg")
     electro_sound.set_volume(0.07)
 
     SIZE = WIDTH, HEIGHT = 1100, 750
@@ -607,3 +613,10 @@ if __name__ == '__main__':
         clock.tick(FPS)
         pygame.display.flip()
     pygame.quit()
+
+def excepthook(exc_type, exc_value, exc_tb):  # для показа ошибок
+    tb = "".join(traceback.format_exception(exc_type, exc_value, exc_tb))
+    print(tb)
+
+
+sys.excepthook = excepthook
