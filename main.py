@@ -3,6 +3,7 @@ import os
 import sys
 import traceback
 
+
 def load_image(name, colorkey=None):
     fullname = os.path.join('data_images', name)
     if not os.path.isfile(fullname):
@@ -11,6 +12,7 @@ def load_image(name, colorkey=None):
     image = pygame.image.load(fullname)
     return image
 
+
 def load_sound(name):
     fullname = os.path.join('sounds', name)
     if not os.path.isfile(fullname):
@@ -18,6 +20,8 @@ def load_sound(name):
         sys.exit()
     sound = pygame.mixer.Sound(fullname)
     return sound
+
+
 class Road(pygame.sprite.Sprite):
     image = load_image("roads.png")
 
@@ -185,6 +189,7 @@ class House(Building):
         board.coins -= building_cost
         board.electricity += electrcity
         board.ispopulation += self.population
+
     def __repr__(self):
         return "H"
 
@@ -334,6 +339,7 @@ class Board:
         board.isbuilding = False
         board.hood()
 
+
 class Shop:
     def __init__(self, x: int, y: int, hw: int, image):
         self.opened = False
@@ -368,7 +374,7 @@ class Shop:
         pygame.display.flip()
         self.selected = None
 
-    def openshop(self):  # todo сделать реакцию на наведение в магазине
+    def openshop(self):
         if self.type == 'дома':
             pygame.draw.rect(screen, (255, 255, 255), (100, 150,
                                                        750, 500), 0)
@@ -515,6 +521,23 @@ class Shop:
         self.opened = False
 
 
+class Roadshop():
+    def __init__(self, x, y, hw, image):
+        self.x, self.y, self.hw = x, y, hw
+        self.isbuilding = False
+        self.roadimage = pygame.transform.scale(load_image(image), (100, 100))
+        screen.blit(self.roadimage, (1000, 150))
+
+    def build(self):
+        print('buildroad')
+
+def excepthook(exc_type, exc_value, exc_tb):  # для показа ошибок
+    tb = "".join(traceback.format_exception(exc_type, exc_value, exc_tb))
+    print(tb)
+
+
+sys.excepthook = excepthook
+
 if __name__ == '__main__':
     balance = 1000
     running = True
@@ -541,12 +564,14 @@ if __name__ == '__main__':
     pygame.display.flip()
     board = Board(1000 // CELL_SIZE, 700 // CELL_SIZE, screen, TOP, RIGHT)
     shop = Shop(999, 50, 100, 'shop.png')
+    roadshop = Roadshop(999, 150, 100, 'roadshop.png')
 
     clock = pygame.time.Clock()
     FPS = 60
     MAX_LEVEL = 10
 
     buildings = pygame.sprite.Group()
+    roads = pygame.sprite.Group()
 
     while running:
         for event in pygame.event.get():
@@ -560,6 +585,14 @@ if __name__ == '__main__':
             if not (1000 <= x <= 1100 and 50 <= y <= 150):
                 pygame.draw.rect(screen, 'white', (shop.x, shop.y, shop.hw, shop.hw), 0)
                 screen.blit(shop.shopimage, (1000, 50))
+                pygame.display.flip()
+            if 1000 <= x <= 1100 and 150 <= y <= 250 and not shop.opened:
+                pygame.draw.rect(screen, (88, 252, 88), (roadshop.x, roadshop.y, roadshop.hw, roadshop.hw), 0)
+                screen.blit(roadshop.roadimage, (1000, 150))
+                pygame.display.flip()
+            if not (1000 <= x <= 1100 and 150 <= y <= 250) and not shop.opened:
+                pygame.draw.rect(screen, 'white', (roadshop.x, roadshop.y, roadshop.hw, roadshop.hw), 0)
+                screen.blit(roadshop.roadimage, (1000, 150))
                 pygame.display.flip()
             if shop.opened:
                 if 850 <= x <= 900 and 150 <= y <= 200:
@@ -604,19 +637,16 @@ if __name__ == '__main__':
                                 item = shop.selected
                                 item.rect = item.rect.move(x * CELL_SIZE, y * CELL_SIZE)
                                 board.build(x, y, item)
-                if not shop.opened and not board.isbuilding:
+                if not shop.opened and not board.isbuilding and not roadshop.isbuilding:
                     if 1000 <= event.pos[0] <= 1100 and 50 <= event.pos[1] <= 150:
                         shop.startshop()
+                if not shop.opened and not board.isbuilding and not roadshop.isbuilding:
+                    if 1000 <= event.pos[0] <= 1100 and 150 <= event.pos[1] <= 250:
+                        roadshop.isbuilding = True
+                        roadshop.build()
                 else:
                     shop.shopclickreact(event.pos)
         buildings.update()
         clock.tick(FPS)
         pygame.display.flip()
     pygame.quit()
-
-def excepthook(exc_type, exc_value, exc_tb):  # для показа ошибок
-    tb = "".join(traceback.format_exception(exc_type, exc_value, exc_tb))
-    print(tb)
-
-
-sys.excepthook = excepthook
