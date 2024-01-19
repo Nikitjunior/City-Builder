@@ -336,18 +336,18 @@ class Board:
         return True
 
     def build(self, x, y, item):
-        if shop.type == 'электро':
-            electro_sound.play()
-        building_sound.play()
-        board[y][x] = item
-        buildings.draw(screen)
-        pygame.display.flip()
+        if type(board[y][x]) == Field:
+            if shop.type == 'электро':
+                electro_sound.play()
+            building_sound.play()
+            board[y][x] = item
+            buildings.draw(screen)
+            pygame.display.flip()
         board.isbuilding = False
         board.hood()
 
     def update_balance(self):
         self.hood()
-
 
 
 class Shop:
@@ -528,6 +528,7 @@ class Shop:
         board.render()
         pygame.display.flip()
         buildings.draw(screen)
+        roads.draw(screen)
         self.opened = False
 
 
@@ -538,8 +539,13 @@ class Roadshop():
         self.roadimage = pygame.transform.scale(load_image(image), (100, 100))
         screen.blit(self.roadimage, (1000, 150))
 
-    def build(self):
-        print('buildroad')
+    def build(self, x, y):
+        board.board[y][x] = Road(roads, x, y)
+        roads.draw(screen)
+        roads.update()
+        pygame.display.flip()
+        self.isbuilding = False
+
 
 def excepthook(exc_type, exc_value, exc_tb):  # для показа ошибок
     tb = "".join(traceback.format_exception(exc_type, exc_value, exc_tb))
@@ -639,6 +645,9 @@ if __name__ == '__main__':
                     pygame.display.flip()
             if event.type == pygame.MOUSEBUTTONDOWN:
                 click_sound.play()
+                if roadshop.isbuilding:
+                    roadshop.build(x // CELL_SIZE, y // CELL_SIZE)
+                    roads.update()
                 if event.button == pygame.BUTTON_LEFT:
                     if board.isbuilding:
                         x, y = board.click_pos()
@@ -650,10 +659,9 @@ if __name__ == '__main__':
                 if not shop.opened and not board.isbuilding and not roadshop.isbuilding:
                     if 1000 <= event.pos[0] <= 1100 and 50 <= event.pos[1] <= 150:
                         shop.startshop()
-                if not shop.opened and not board.isbuilding and not roadshop.isbuilding:
+                if not (shop.opened or board.isbuilding or roadshop.isbuilding):
                     if 1000 <= event.pos[0] <= 1100 and 150 <= event.pos[1] <= 250:
                         roadshop.isbuilding = True
-                        roadshop.build()
                 else:
                     shop.shopclickreact(event.pos)
         board.update_balance()
