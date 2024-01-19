@@ -179,8 +179,6 @@ class House(Building):
         board.coins -= building_cost
         board.electricity += electrcity
         board.ispopulation += self.population
-        board.hood()
-
     def __repr__(self):
         return "H"
 
@@ -199,7 +197,6 @@ class Electricity(Building):
         board.coins -= building_cost
         board.iselectricity += iselectrcity
         board.population += population
-        board.hood()
 
 
 class Service(Building):
@@ -217,7 +214,6 @@ class Service(Building):
         board.coins -= building_cost
         board.electricity += electrcity
         board.population += population
-        board.hood()
 
 
 class Field:
@@ -323,12 +319,14 @@ class Board:
         return True
 
     def build(self, x, y, item):
+        if shop.type == 'электро':
+            electro_sound.play()
         building_sound.play()
         board[y][x] = item
         buildings.draw(screen)
         pygame.display.flip()
         board.isbuilding = False
-
+        board.hood()
 
 class Shop:
     def __init__(self, x: int, y: int, hw: int, image):
@@ -352,14 +350,15 @@ class Shop:
                                                    800, 500), 0)
         self.type = 'дома'  # изначально открывается вкладка с домами
         self.openshop()
-        housemenuim = pygame.transform.scale(load_image('house1.png'), (50, 50))
-        electromenuim = pygame.transform.scale(load_image('electro.png'), (50, 50))
-        othersmenuim = pygame.transform.scale(load_image('office.jpg'), (50, 50))
-        closeim = pygame.transform.scale(load_image('close.png'), (50, 50))
-        screen.blit(closeim, (850, 150))
-        screen.blit(housemenuim, (850, 200))
-        screen.blit(electromenuim, (850, 250))
-        screen.blit(othersmenuim, (850, 300))
+        self.shopimage = pygame.transform.scale(load_image('shop.png'), (100, 100))
+        self.housemenuim = pygame.transform.scale(load_image('house1.png'), (50, 50))
+        self.electromenuim = pygame.transform.scale(load_image('electro.png'), (50, 50))
+        self.othersmenuim = pygame.transform.scale(load_image('office.jpg'), (50, 50))
+        self.closeim = pygame.transform.scale(load_image('close.png'), (50, 50))
+        screen.blit(self.closeim, (850, 150))
+        screen.blit(self.housemenuim, (850, 200))
+        screen.blit(self.electromenuim, (850, 250))
+        screen.blit(self.othersmenuim, (850, 300))
         pygame.display.flip()
         self.selected = None
 
@@ -523,6 +522,8 @@ if __name__ == '__main__':
     building_sound.set_volume(0.09)
     click_sound = pygame.mixer.Sound("sounds/click.wav")
     click_sound.set_volume(0.1)
+    electro_sound = pygame.mixer.Sound("sounds/electro.ogg")
+    electro_sound.set_volume(0.07)
 
     SIZE = WIDTH, HEIGHT = 1100, 750
     CELL_SIZE = 50
@@ -545,6 +546,48 @@ if __name__ == '__main__':
         for event in pygame.event.get():
             if event.type == pygame.QUIT:
                 running = False
+            x, y = pygame.mouse.get_pos()
+            if 1000 <= x <= 1100 and 50 <= y <= 150 and not shop.opened:
+                pygame.draw.rect(screen, (88, 252, 88), (shop.x, shop.y, shop.hw, shop.hw), 0)
+                screen.blit(shop.shopimage, (1000, 50))
+                pygame.display.flip()
+            if not (1000 <= x <= 1100 and 50 <= y <= 150):
+                pygame.draw.rect(screen, 'white', (shop.x, shop.y, shop.hw, shop.hw), 0)
+                screen.blit(shop.shopimage, (1000, 50))
+                pygame.display.flip()
+            if shop.opened:
+                if 850 <= x <= 900 and 150 <= y <= 200:
+                    pygame.draw.rect(screen, (88, 252, 88), (850, 150, 50, 50), 0)
+                    screen.blit(shop.closeim, (850, 150))
+                    pygame.display.flip()
+                if 850 <= x <= 900 and 200 <= y <= 250:
+                    pygame.draw.rect(screen, (88, 252, 88), (850, 200, 50, 50), 0)
+                    screen.blit(shop.housemenuim, (850, 200))
+                    pygame.display.flip()
+                if 850 <= x <= 900 and 250 <= y <= 300:
+                    pygame.draw.rect(screen, (88, 252, 88), (850, 250, 50, 50), 0)
+                    screen.blit(shop.electromenuim, (850, 250))
+                    pygame.display.flip()
+                if 850 <= x <= 900 and 300 <= y <= 350:
+                    pygame.draw.rect(screen, (88, 252, 88), (850, 300, 50, 50), 0)
+                    screen.blit(shop.othersmenuim, (850, 300))
+                    pygame.display.flip()
+                if not (850 <= x <= 900 and 150 <= y <= 200):
+                    pygame.draw.rect(screen, 'white', (850, 150, 50, 50), 0)
+                    screen.blit(shop.closeim, (850, 150))
+                    pygame.display.flip()
+                if not (850 <= x <= 900 and 200 <= y <= 250):
+                    pygame.draw.rect(screen, 'white', (850, 200, 50, 50), 0)
+                    screen.blit(shop.housemenuim, (850, 200))
+                    pygame.display.flip()
+                if not (850 <= x <= 900 and 250 <= y <= 300):
+                    pygame.draw.rect(screen, 'white', (850, 250, 50, 50), 0)
+                    screen.blit(shop.electromenuim, (850, 250))
+                    pygame.display.flip()
+                if not (850 <= x <= 900 and 300 <= y <= 350):
+                    pygame.draw.rect(screen, 'white', (850, 300, 50, 50), 0)
+                    screen.blit(shop.othersmenuim, (850, 300))
+                    pygame.display.flip()
             if event.type == pygame.MOUSEBUTTONDOWN:
                 click_sound.play()
                 if event.button == pygame.BUTTON_LEFT:
